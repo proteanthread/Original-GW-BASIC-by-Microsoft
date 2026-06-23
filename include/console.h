@@ -15,7 +15,7 @@
  *    - Core mathematical parsing precedence chain (eval descent hierarchy).
  * 
  * 3. EXPECTED BEHAVIOR:
- *    - Full, identical execution of classic GW-BASIC DOS11 game and graphics scripts.
+ *    - Interface definitions for terminal input/output, line-editing, and character read utilities.
  *    - Non-blocking keyboard/stdin event queues.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:

@@ -1,6 +1,16 @@
-# Microsoft GW-BASIC Interpreter Source Code
+# Microsoft GW-BASIC Interpreter C17 Port
 
-This repo contains the original source-code for Microsoft's GW-BASIC interpreter, as of 1983.
+This repository contains a modern **C17 port** of Microsoft's original 1983 GW-BASIC interpreter, which was originally written in Intel 8086 assembly language. The goal of this project is to provide a highly accurate, compatible, and modern cross-platform executable that compiles with modern toolchains (like GCC, Clang, MSVC) and runs on modern operating systems (Windows, macOS, Linux).
+
+### Key Architectural Highlights:
+1. **Interpreter Core & AST/Token Loop**: Re-implements the original GW-BASIC interpreter mechanics, tokenizing ASCII BASIC source lines and executing statements via a parser design that matches classic behaviors.
+2. **Emulated Segmented Memory**: Includes a simulated physical segmented memory architecture, supporting low-level operations such as `PEEK`, `POKE`, `DEF SEG`, and `VARPTR` to interact with simulated registers and RAM buffers.
+3. **Microsoft Binary Format (MBF) Emulation**: Emulates MBF float storage and mathematical operations, ensuring that mathematical calculations and data files containing MBF float formats are handled and converted accurately.
+4. **SDL2-Based Graphics & Sound Emulation**: Provides a dynamic hardware interface using Simple DirectMedia Layer (SDL2) to recreate legacy PCjr, Tandy, CGA, EGA, VGA, and Hercules screen modes (handling pixel plotting, video memory pages, screen modes, palette selection, sound playback, and real-time keyboard/controller inputs).
+5. **Event-Trapping Engine**: Supports asynchronous and non-blocking event-trapping for `KEY`, `COM`, and `TIMER` traps, reproducing authentic DOS background-execution characteristics.
+6. **Logical Device Channels**: Routes output dynamically through logical file/device channels (files, serial COM ports, printer LPT buffers, or console displays).
+7. **Extension Plugin Interface**: Includes a modular plugin manager to register, query, and call custom statement and function handlers at runtime.
+
 
 ## Announcement blog
 https://devblogs.microsoft.com/commandline/microsoft-open-sources-gw-basic/

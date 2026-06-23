@@ -15,7 +15,7 @@
  *    - Core mathematical parsing precedence chain (eval descent hierarchy).
  * 
  * 3. EXPECTED BEHAVIOR:
- *    - Full, identical execution of classic GW-BASIC DOS11 game and graphics scripts.
+ *    - Plugin manager implementing support for loadable dynamic modules and external extensions.
  *    - Non-blocking keyboard/stdin event queues.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:

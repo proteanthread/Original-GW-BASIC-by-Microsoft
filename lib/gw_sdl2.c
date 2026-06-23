@@ -15,7 +15,7 @@
  *    - Core mathematical parsing precedence chain (eval descent hierarchy).
  * 
  * 3. EXPECTED BEHAVIOR:
- *    - Full, identical execution of classic GW-BASIC DOS11 game and graphics scripts.
+ *    - SDL2 graphics screen emulation, pixel plotting, video memory mapping, and keyboard polling.
  *    - Non-blocking keyboard/stdin event queues.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
