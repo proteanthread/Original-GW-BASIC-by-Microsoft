@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Simulated segmented RAM layout mapping for PEEK, POKE, DEF SEG, and VARPTR.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Emulation of x86 segmentation register bounds and DEF SEG offset routing.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

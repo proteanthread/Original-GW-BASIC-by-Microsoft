@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for GW-BASIC expression evaluation and parsing.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Mathematical evaluation function signatures and operand value union types.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

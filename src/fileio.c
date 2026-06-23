@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Logical device routing and file I/O operations (file, serial, printer, console channels).
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Low-level disk file handles, record locking, and raw sector buffering.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for virtual segmented memory mapping and memory storage.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Virtual segmented memory block accessors and segment definition registers.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

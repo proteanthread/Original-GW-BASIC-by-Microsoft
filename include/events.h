@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Structures and interfaces for managing GW-BASIC background event traps.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Key event structures and timer-based trap dispatch definitions.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

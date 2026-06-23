@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Plugin manager implementing support for loadable dynamic modules and external extensions.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Dynamic library resolution, plugin loading, and runtime command callbacks.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

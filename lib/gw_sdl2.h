@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions and video/audio mapping constants for SDL2 emulation.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - SDL2 screen configuration, texture blitting, and play/sound tone APIs.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.
@@ -59,6 +59,7 @@ void gw_sdl2_write_char(char c);
 void gw_sdl2_clear_screen(uint32_t color);
 void gw_sdl2_set_cursor(int x, int y);
 char gw_sdl2_get_char(int x, int y);
+void gw_sdl2_set_console(int start, int lines, int fn_keys, int mono);
 
 // Sound API (PC Speaker Emulation)
 void gw_sdl2_beep(void);

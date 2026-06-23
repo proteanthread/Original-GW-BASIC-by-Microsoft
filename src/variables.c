@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Scalar variable and multidimensional array space lookup, assignment, and allocation.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Multi-dimensional array dimensions and local scope lookups.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

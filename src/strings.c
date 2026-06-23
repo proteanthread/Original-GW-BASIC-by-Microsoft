@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - String descriptor manipulations, concatenations, comparisons, and allocations.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Dynamic memory descriptors, substring copy/concatenation, and garbage collection.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

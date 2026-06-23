@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Tokenizer and detokenizer logic for binary format `.BAS` and command line entry.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Crunching of raw ASCII lines and detokenization of legacy binary BASIC files.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

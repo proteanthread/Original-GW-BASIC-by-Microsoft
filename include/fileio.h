@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for logical devices and file control operations.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - File control block (FCB) interface declarations and channel routing.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

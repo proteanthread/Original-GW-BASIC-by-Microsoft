@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Main entry point of the interpreter, environment initialization, and command-line parsing.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Shell interactive read-eval-print loop (REPL) and basic command-line switch parser.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.
@@ -124,11 +124,6 @@ int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
     printf("GW-BASIC Modernized 64-bit Interpreter (C17)\n");
-    printf("Initializing SDL2 graphics and audio...\n");
-    
-    if (gw_sdl2_init(640, 400, "GW-BASIC C17", 0) < 0) {
-        fprintf(stderr, "Warning: Failed to initialize SDL2. Running in text-only mode.\n");
-    }
     
     init_interpreter_state();
     

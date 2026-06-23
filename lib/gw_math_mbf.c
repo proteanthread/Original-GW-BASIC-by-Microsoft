@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Microsoft Binary Format (MBF) single/double float conversion and operations.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Raw bit manipulation to reconstruct double-precision values from classic MBF format.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

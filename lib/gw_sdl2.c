@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - SDL2 graphics screen emulation, pixel plotting, video memory mapping, and keyboard polling.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - CGA/EGA/VGA framebuffers, palette color conversions, and audio synth engines.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.
@@ -30,13 +30,13 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifndef NO_SDL2
-#include <SDL.h>
-#else
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+#ifndef NO_SDL2
+#include <SDL.h>
 #endif
 
 static const uint32_t GW_IBM_PALETTE[16] = {
@@ -75,6 +75,11 @@ static uint32_t g_text_fg = 0xFFFFFFFF; // White
 static uint32_t g_text_bg = 0x000000FF; // Black
 static int g_machine_type = 0; // 0=VGA, 1=HGC, 2=Tandy, 3=PCjr, 4=Plantronics, 5=AT&T, 6=Amstrad, 7=PC98
 static char g_screen_chars[25][80];
+
+static int g_scroll_start = 0;
+static int g_scroll_lines = 25;
+static int g_show_fn_keys = 0;
+static int g_mono_mode = 0;
 
 #ifndef NO_SDL2
 // SDL Window / Renderer Globals
@@ -127,6 +132,9 @@ static void audio_callback(void *userdata, Uint8 *stream, int len) {
 #endif
 
 int gw_sdl2_init(int width, int height, const char *title, int fullscreen) {
+    if (g_pixels != NULL) {
+        return 0; // Already initialized
+    }
     g_tex_width = width;
     g_tex_height = height;
     g_pixels = (uint32_t *)calloc(width * height, sizeof(uint32_t));
@@ -154,6 +162,7 @@ int gw_sdl2_init(int width, int height, const char *title, int fullscreen) {
     g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!g_renderer) {
         SDL_DestroyWindow(g_window);
+        g_window = NULL;
         SDL_Quit();
         return -1;
     }
@@ -162,7 +171,9 @@ int gw_sdl2_init(int width, int height, const char *title, int fullscreen) {
                                   SDL_TEXTUREACCESS_STREAMING, width, height);
     if (!g_texture) {
         SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
         SDL_DestroyWindow(g_window);
+        g_window = NULL;
         SDL_Quit();
         return -1;
     }
@@ -193,19 +204,36 @@ int gw_sdl2_init(int width, int height, const char *title, int fullscreen) {
 }
 
 void gw_sdl2_cleanup(void) {
+    if (!g_pixels) return;
 #ifndef NO_SDL2
     gw_sdl2_stop_music();
     
     if (g_audio_device > 0) {
         SDL_CloseAudioDevice(g_audio_device);
+        g_audio_device = 0;
     }
     
-    if (g_audio_mutex) SDL_DestroyMutex(g_audio_mutex);
-    if (g_music_mutex) SDL_DestroyMutex(g_music_mutex);
+    if (g_audio_mutex) {
+        SDL_DestroyMutex(g_audio_mutex);
+        g_audio_mutex = NULL;
+    }
+    if (g_music_mutex) {
+        SDL_DestroyMutex(g_music_mutex);
+        g_music_mutex = NULL;
+    }
     
-    if (g_texture) SDL_DestroyTexture(g_texture);
-    if (g_renderer) SDL_DestroyRenderer(g_renderer);
-    if (g_window) SDL_DestroyWindow(g_window);
+    if (g_texture) {
+        SDL_DestroyTexture(g_texture);
+        g_texture = NULL;
+    }
+    if (g_renderer) {
+        SDL_DestroyRenderer(g_renderer);
+        g_renderer = NULL;
+    }
+    if (g_window) {
+        SDL_DestroyWindow(g_window);
+        g_window = NULL;
+    }
     SDL_Quit();
 #endif
 
@@ -227,6 +255,7 @@ void gw_sdl2_present(void) {
 
 void gw_sdl2_poll_events(void) {
 #ifndef NO_SDL2
+    if (!g_pixels) return;
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -275,6 +304,7 @@ int gw_sdl2_get_key(void) {
 
 int gw_sdl2_key_pressed(int scancode) {
 #ifndef NO_SDL2
+    if (!g_pixels) return 0;
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (scancode >= 0 && scancode < SDL_NUM_SCANCODES) {
         return state[scancode] ? 1 : 0;
@@ -403,7 +433,16 @@ void gw_sdl2_paint(int start_x, int start_y, uint32_t fill_color, uint32_t borde
 
 void gw_sdl2_beep(void) {
 #ifndef NO_SDL2
-    gw_sdl2_play_tone(800.0f, 150, 1);
+    if (g_pixels && g_audio_device > 0) {
+        gw_sdl2_play_tone(800.0f, 150, 1);
+    } else {
+#ifdef _WIN32
+        Beep(800, 150);
+#else
+        printf("\a");
+        fflush(stdout);
+#endif
+    }
 #else
     printf("\a");
     fflush(stdout);
@@ -412,18 +451,36 @@ void gw_sdl2_beep(void) {
 
 void gw_sdl2_play_tone(float frequency, int duration_ms, int wait) {
 #ifndef NO_SDL2
-    if (g_audio_device <= 0) return;
-    
-    SDL_LockMutex(g_audio_mutex);
-    g_audio_frequency = frequency;
-    g_audio_phase = 0.0;
-    SDL_UnlockMutex(g_audio_mutex);
-    
-    if (wait) {
-        SDL_Delay(duration_ms);
+    if (g_pixels && g_audio_device > 0) {
         SDL_LockMutex(g_audio_mutex);
-        g_audio_frequency = 0.0f;
+        g_audio_frequency = frequency;
+        g_audio_phase = 0.0;
         SDL_UnlockMutex(g_audio_mutex);
+        
+        if (wait) {
+            SDL_Delay(duration_ms);
+            SDL_LockMutex(g_audio_mutex);
+            g_audio_frequency = 0.0f;
+            SDL_UnlockMutex(g_audio_mutex);
+        }
+    } else {
+        (void)wait;
+#ifdef _WIN32
+        if (frequency > 0) {
+            Beep((DWORD)frequency, (DWORD)duration_ms);
+        } else {
+            Sleep((DWORD)duration_ms);
+        }
+#else
+        if (frequency > 0) {
+            printf("\a");
+            fflush(stdout);
+        }
+        struct timespec ts;
+        ts.tv_sec = duration_ms / 1000;
+        ts.tv_nsec = (duration_ms % 1000) * 1000000;
+        nanosleep(&ts, NULL);
+#endif
     }
 #else
     (void)wait;
@@ -880,7 +937,21 @@ void gw_sdl2_set_text_color(uint32_t fg, uint32_t bg) {
     g_text_bg = bg;
 }
 
+void gw_sdl2_set_console(int start, int lines, int fn_keys, int mono) {
+    if (start >= 0 && start < g_grid_rows) g_scroll_start = start;
+    if (lines > 0 && g_scroll_start + lines <= g_grid_rows) g_scroll_lines = lines;
+    if (fn_keys >= 0) g_show_fn_keys = fn_keys;
+    if (mono >= 0) g_mono_mode = mono;
+}
+
 static void scroll_screen(void) {
+    int start = g_scroll_start;
+    int num = g_scroll_lines;
+    if (start < 0) start = 0;
+    if (num <= 0) num = g_grid_rows - start;
+    if (start + num > g_grid_rows) num = g_grid_rows - start;
+    if (num <= 1) return; // Nothing to scroll
+
     int char_h = 8;
     if (g_tex_width == 640 && g_tex_height == 400) { // Screen 0 Text
         char_h = 16;
@@ -894,17 +965,22 @@ static void scroll_screen(void) {
         char_h = 8;
     }
     
-    int row_pixels = g_tex_width * char_h;
-    int total_pixels = g_tex_width * g_tex_height;
-    
-    memmove(g_screen_chars[0], g_screen_chars[1], 24 * 80);
-    memset(g_screen_chars[24], ' ', 80);
+    // Shift text buffer rows
+    memmove(g_screen_chars[start], g_screen_chars[start + 1], (num - 1) * 80);
+    memset(g_screen_chars[start + num - 1], ' ', 80);
     
     if (g_pixels) {
-        memmove(g_pixels, g_pixels + row_pixels, (total_pixels - row_pixels) * sizeof(uint32_t));
-        // Clear bottom row
-        for (int i = total_pixels - row_pixels; i < total_pixels; i++) {
-            g_pixels[i] = g_text_bg;
+        int row_pixels = g_tex_width * char_h;
+        int start_pixel_row = start * char_h;
+        int num_pixel_rows = num * char_h;
+        uint32_t *dest = g_pixels + start_pixel_row * g_tex_width;
+        uint32_t *src = dest + row_pixels;
+        memmove(dest, src, (num_pixel_rows - row_pixels) * g_tex_width * sizeof(uint32_t));
+        
+        // Clear bottom row of the scroll window
+        uint32_t *clear_start = dest + (num_pixel_rows - row_pixels) * g_tex_width;
+        for (int i = 0; i < row_pixels; i++) {
+            clear_start[i] = g_text_bg;
         }
     }
 }
@@ -995,12 +1071,31 @@ static void draw_char_cell(char c, int grid_x, int grid_y) {
 }
 
 void gw_sdl2_write_char(char c) {
+    int start = g_scroll_start;
+    int num = g_scroll_lines;
+    if (start < 0) start = 0;
+    if (num <= 0) num = g_grid_rows - start;
+    if (start + num > g_grid_rows) num = g_grid_rows - start;
+    int scroll_end = start + num;
+    int max_y = (g_cursor_y >= start && g_cursor_y < scroll_end) ? scroll_end : g_grid_rows;
+
     if (c == '\n') {
         g_cursor_x = 0;
         g_cursor_y++;
-        if (g_cursor_y >= g_grid_rows) {
-            scroll_screen();
-            g_cursor_y = g_grid_rows - 1;
+        if (g_cursor_y >= max_y) {
+            if (max_y == scroll_end) {
+                scroll_screen();
+                g_cursor_y = scroll_end - 1;
+            } else {
+                int old_start = g_scroll_start;
+                int old_lines = g_scroll_lines;
+                g_scroll_start = 0;
+                g_scroll_lines = g_grid_rows;
+                scroll_screen();
+                g_scroll_start = old_start;
+                g_scroll_lines = old_lines;
+                g_cursor_y = g_grid_rows - 1;
+            }
         }
         gw_sdl2_present();
         return;
@@ -1014,9 +1109,20 @@ void gw_sdl2_write_char(char c) {
         if (g_cursor_x >= g_grid_cols) {
             g_cursor_x = 0;
             g_cursor_y++;
-            if (g_cursor_y >= g_grid_rows) {
-                scroll_screen();
-                g_cursor_y = g_grid_rows - 1;
+            if (g_cursor_y >= max_y) {
+                if (max_y == scroll_end) {
+                    scroll_screen();
+                    g_cursor_y = scroll_end - 1;
+                } else {
+                    int old_start = g_scroll_start;
+                    int old_lines = g_scroll_lines;
+                    g_scroll_start = 0;
+                    g_scroll_lines = g_grid_rows;
+                    scroll_screen();
+                    g_scroll_start = old_start;
+                    g_scroll_lines = old_lines;
+                    g_cursor_y = g_grid_rows - 1;
+                }
             }
         }
         gw_sdl2_present();
@@ -1036,9 +1142,20 @@ void gw_sdl2_write_char(char c) {
     if (g_cursor_x >= g_grid_cols) {
         g_cursor_x = 0;
         g_cursor_y++;
-        if (g_cursor_y >= g_grid_rows) {
-            scroll_screen();
-            g_cursor_y = g_grid_rows - 1;
+        if (g_cursor_y >= max_y) {
+            if (max_y == scroll_end) {
+                scroll_screen();
+                g_cursor_y = scroll_end - 1;
+            } else {
+                int old_start = g_scroll_start;
+                int old_lines = g_scroll_lines;
+                g_scroll_start = 0;
+                g_scroll_lines = g_grid_rows;
+                scroll_screen();
+                g_scroll_start = old_start;
+                g_scroll_lines = old_lines;
+                g_cursor_y = g_grid_rows - 1;
+            }
         }
     }
     gw_sdl2_present();

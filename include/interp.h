@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for the statement execution engine and core loop.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Statement dispatcher registry and execution stack descriptors.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

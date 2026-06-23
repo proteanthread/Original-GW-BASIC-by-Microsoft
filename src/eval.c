@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Math/logical expression parsing and evaluation using recursive descent.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Direct calculation of numeric and string expressions based on operator precedence.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

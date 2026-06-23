@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for variable lookup and array space management.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Declarations for scalar variables, arrays, and type suffix matching.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

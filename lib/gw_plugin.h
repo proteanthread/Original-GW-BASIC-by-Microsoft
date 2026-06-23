@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for registering and querying pluggable interpreter modules.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - External module API registration interfaces and runtime dispatcher.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

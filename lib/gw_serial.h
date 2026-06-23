@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Interface definitions for physical host serial configuration and operations.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Serial hardware connection configurations and channel data buffers.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

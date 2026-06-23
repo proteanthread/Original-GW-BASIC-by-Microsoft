@@ -1,6 +1,20 @@
 # Microsoft GW-BASIC Interpreter C17 Port
 
-This repository contains a modern **C17 port** of Microsoft's original 1983 GW-BASIC interpreter, which was originally written in Intel 8086 assembly language. The goal of this project is to provide a highly accurate, compatible, and modern cross-platform executable that compiles with modern toolchains (like GCC, Clang, MSVC) and runs on modern operating systems (Windows, macOS, Linux).
+This repository contains a modern, highly compatible **C17 port** of Microsoft's original 1983 GW-BASIC interpreter. Originally written entirely in Intel 8086 assembly language, this project systematically translates that legacy system into standard, portable C17. The primary objective is to deliver a fully functional, cross-platform interpreter capable of executing classic GW-BASIC scripts, games, and graphical/audio programs identically to the original MS-DOS environment, while running natively on modern operating systems (Windows, macOS, Linux).
+
+## Project Scope & Objectives
+
+The GW-BASIC C17 port project is designed to bridge the gap between historical computing and modern system environments by focusing on the following core domains:
+
+1. **Syntactic & Operational Fidelity**: Re-creating the exact AST structures, tokenization processes, and statement execution pathways of the original interpreter. This guarantees that tokenized binary `.BAS` files and ASCII source files load and run with authentic parsing semantics.
+2. **Segmented Memory Emulation**: Emulating the 8086 segmented memory architecture (up to 1MB of addressable space). This allows legacy low-level programming operations (`PEEK`, `POKE`, `DEF SEG`, and memory offset calculations via `VARPTR`) to behave identically, accessing a virtual RAM arena containing simulated hardware registers and buffers.
+3. **Microsoft Binary Format (MBF) Mathematics**: Implementing accurate MBF single-precision (32-bit) and double-precision (64-bit) floating-point format conversions. Because original GW-BASIC stored floats in MBF rather than IEEE 754, this implementation is critical for interpreting binary float files and carrying out exact mathematical calculations without precision discrepancies.
+4. **SDL2 Virtual Device Layer (VDev)**: Recreating CGA, EGA, VGA, Hercules, and Tandy graphics screens, color palettes, sound tone generation (`PLAY`, `SOUND`), and real-time input handling. It dynamically creates a hardware-independent canvas using Simple DirectMedia Layer (SDL2) when the BASIC script requests a graphics screen mode (> 0).
+5. **Event-Trapping and I/O Routing**: Simulating background DOS interrupt traps for asynchronous serial communication (`COM`), keyboard keys (`KEY`), and elapsed intervals (`TIMER`), alongside logical file channel multiplexing.
+6. **Extensible Plugin Subsystem**: Providing a modular C-interface to inject custom statement and function handlers at runtime, allowing users to extend the interpreter without altering its core architecture.
+7. **BASIC++ Integration**: Architected to be fully embeddable as a static module (`GWBASIC`) within the broader **BASIC++** compiler/interpreter framework, facilitating a unified dialect mode (`DIALECT_GW_BASIC`) that supports Union, Mixed, and Strict modes.
+
+---
 
 ### Key Architectural Highlights:
 1. **Interpreter Core & AST/Token Loop**: Re-implements the original GW-BASIC interpreter mechanics, tokenizing ASCII BASIC source lines and executing statements via a parser design that matches classic behaviors.

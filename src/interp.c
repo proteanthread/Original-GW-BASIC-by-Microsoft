@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Core interpreter loop and implementation of GW-BASIC statement handlers.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Program flow control stack, block execution loops, and branching logic.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.
@@ -425,12 +425,13 @@ static void handle_screen(GW_State *state) {
         cols = 80;
     }
     
-    gw_sdl2_set_mode(mode, cols);
-    
-    if (mode == 0) {
-        printf("[SCREEN: Text mode %dx25]\n", cols);
-    } else {
+    if (mode > 0) {
+        gw_sdl2_init(640, 400, "GW-BASIC C17", 0);
+        gw_sdl2_set_mode(mode, cols);
         printf("[SCREEN: Graphics Mode %d]\n", mode);
+    } else {
+        gw_sdl2_cleanup();
+        printf("[SCREEN: Text mode %dx25]\n", cols);
     }
 }
 
@@ -2617,12 +2618,61 @@ void gw_exec_statement(GW_State *state) {
             state->ip++;
             handle_files(state);
             break;
-        case TOK_CONSOLE:
+        case TOK_CONSOLE: {
             state->ip++;
-            while (state->ip && *state->ip && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
-                state->ip++;
+            int start = -1;
+            int lines = -1;
+            int fn_keys = -1;
+            int mono = -1;
+            
+            while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+            
+            if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+                GW_Value val;
+                gw_eval_expr(state, &val);
+                start = gw_val_get_int(&val);
+                if (val.type == TYPE_STRING) gw_str_free(&val.str);
             }
+            
+            while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+            if (*state->ip == ',') {
+                state->ip++;
+                while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+                if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+                    GW_Value val;
+                    gw_eval_expr(state, &val);
+                    lines = gw_val_get_int(&val);
+                    if (val.type == TYPE_STRING) gw_str_free(&val.str);
+                }
+            }
+            
+            while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+            if (*state->ip == ',') {
+                state->ip++;
+                while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+                if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+                    GW_Value val;
+                    gw_eval_expr(state, &val);
+                    fn_keys = gw_val_get_int(&val);
+                    if (val.type == TYPE_STRING) gw_str_free(&val.str);
+                }
+            }
+            
+            while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+            if (*state->ip == ',') {
+                state->ip++;
+                while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+                if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+                    GW_Value val;
+                    gw_eval_expr(state, &val);
+                    mono = gw_val_get_int(&val);
+                    if (val.type == TYPE_STRING) gw_str_free(&val.str);
+                }
+            }
+            
+            gw_sdl2_set_console(start, lines, fn_keys, mono);
             break;
+        }
         case TOK_IF: {
             state->ip++;
             GW_Value cond;

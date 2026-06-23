@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Console and terminal input/output handling, line-editing, and ASCII character reading.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Buffered keystroke queue management and terminal escape sequence rendering.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Event trapping (KEY, COM, TIMER) management and background event dispatcher.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Event loop integration for keyboard, serial port, and timer tick trapping.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.

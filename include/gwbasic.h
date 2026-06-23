@@ -16,7 +16,7 @@
  * 
  * 3. EXPECTED BEHAVIOR:
  *    - Global structures, data types (GW_State, GW_Value, GW_Var), and config constants.
- *    - Non-blocking keyboard/stdin event queues.
+ *    - Global interpreter state struct, type system, and constant tables.
  * 
  * 4. WHAT TO DO IF SOMETHING BREAKS:
  *    - Check variable tables, default variable type states, and stack pointers.
