@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -243,19 +244,47 @@ void gw_sdl2_cleanup(void) {
     }
 }
 
-void gw_sdl2_present(void) {
+static uint32_t g_last_present_time = 0;
+static int g_present_pending = 0;
+
+void gw_sdl2_present_forced(void) {
 #ifndef NO_SDL2
     if (!g_renderer || !g_texture || !g_pixels) return;
     SDL_UpdateTexture(g_texture, NULL, g_pixels, g_tex_width * sizeof(uint32_t));
     SDL_RenderClear(g_renderer);
     SDL_RenderCopy(g_renderer, g_texture, NULL, NULL);
     SDL_RenderPresent(g_renderer);
+    g_last_present_time = SDL_GetTicks();
+    g_present_pending = 0;
+#endif
+}
+
+void gw_sdl2_present(void) {
+#ifndef NO_SDL2
+    if (!g_renderer || !g_texture || !g_pixels) return;
+    
+    uint32_t now = SDL_GetTicks();
+    if (now - g_last_present_time >= 16) {
+        SDL_UpdateTexture(g_texture, NULL, g_pixels, g_tex_width * sizeof(uint32_t));
+        SDL_RenderClear(g_renderer);
+        SDL_RenderCopy(g_renderer, g_texture, NULL, NULL);
+        SDL_RenderPresent(g_renderer);
+        g_last_present_time = now;
+        g_present_pending = 0;
+    } else {
+        g_present_pending = 1;
+    }
 #endif
 }
 
 void gw_sdl2_poll_events(void) {
 #ifndef NO_SDL2
     if (!g_pixels) return;
+    
+    uint32_t now = SDL_GetTicks();
+    if (g_present_pending && (now - g_last_present_time >= 16)) {
+        gw_sdl2_present_forced();
+    }
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -1179,4 +1208,72 @@ char gw_sdl2_get_char(int x, int y) {
         return g_screen_chars[y][x];
     }
     return ' ';
+}
+
+void gw_sdl2_poke_char(int x, int y, char c) {
+    if (x >= 0 && x < 80 && y >= 0 && y < 25) {
+        g_screen_chars[y][x] = c;
+        draw_char_cell(c, x, y);
+        gw_sdl2_present();
+    }
+}
+
+uint32_t gw_sdl2_ticks(void) {
+#ifndef NO_SDL2
+    return SDL_GetTicks();
+#else
+    return (uint32_t)(clock() * 1000 / CLOCKS_PER_SEC);
+#endif
+}
+
+int gw_sdl2_get_columns(void) {
+    return g_grid_cols;
+}
+
+int gw_sdl2_get_mode(void) {
+    return g_current_mode;
+}
+
+uint8_t gw_sdl2_get_shift_flags(void) {
+#ifndef NO_SDL2
+    SDL_Keymod mod = SDL_GetModState();
+    uint8_t flags = 0;
+    if (mod & KMOD_RSHIFT) flags |= 0x01;
+    if (mod & KMOD_LSHIFT) flags |= 0x02;
+    if (mod & KMOD_CTRL)   flags |= 0x04;
+    if (mod & KMOD_ALT)    flags |= 0x08;
+    if (mod & KMOD_NUM)    flags |= 0x20;
+    if (mod & KMOD_CAPS)   flags |= 0x40;
+    return flags;
+#else
+    return 0;
+#endif
+}
+
+void gw_sdl2_delay(uint32_t ms) {
+#ifndef NO_SDL2
+    if (g_present_pending) {
+        gw_sdl2_present_forced();
+    }
+    SDL_Delay(ms);
+#else
+#ifdef _WIN32
+    Sleep(ms);
+#else
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#endif
+#endif
+}
+
+void gw_sdl2_write_char_cursor(int show) {
+    if (show) {
+        draw_char_cell('_', g_cursor_x, g_cursor_y);
+    } else {
+        char c = g_screen_chars[g_cursor_y][g_cursor_x];
+        draw_char_cell(c, g_cursor_x, g_cursor_y);
+    }
+    gw_sdl2_present();
 }

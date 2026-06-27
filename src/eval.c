@@ -1087,6 +1087,82 @@ static void eval_primary(GW_State *state, GW_Value *result) {
         return;
     }
     
+    // Check FRE function
+    if (*state->ip == TOK_FRE) {
+        state->ip++;
+        if (*state->ip == '(') state->ip++;
+        GW_Value val;
+        gw_eval_expr(state, &val);
+        if (*state->ip == ')') state->ip++;
+        if (val.type == TYPE_STRING) {
+            gw_str_free(&val.str);
+        }
+        result->type = TYPE_DOUBLE;
+        result->d_val = (double)g_state->string_space_free;
+        return;
+    }
+    // Check USR0-USR9 functions
+    if (*state->ip >= TOK_USR0 && *state->ip <= TOK_USR9) {
+        int usr_idx = *state->ip - TOK_USR0;
+        state->ip++;
+        if (*state->ip == '(') state->ip++;
+        GW_Value val;
+        gw_eval_expr(state, &val);
+        if (*state->ip == ')') state->ip++;
+        
+        double arg = gw_val_get_double(&val);
+        if (val.type == TYPE_STRING) {
+            gw_str_free(&val.str);
+        }
+        
+        uint32_t addr = ((uint32_t)g_state->usr_segments[usr_idx] * 16) + g_state->usr_offsets[usr_idx];
+        double ret_val = 0.0;
+        if (addr == 0x80100) {
+            ret_val = 1.0; 
+        } else {
+            ret_val = arg;
+        }
+        
+        result->type = TYPE_DOUBLE;
+        result->d_val = ret_val;
+        return;
+    }
+    
+    // Check SCREEN function
+    if (*state->ip == TOK_SCREEN) {
+        state->ip++;
+        if (*state->ip == '(') state->ip++;
+        
+        GW_Value row_val, col_val;
+        gw_eval_expr(state, &row_val);
+        if (*state->ip == ',') state->ip++;
+        gw_eval_expr(state, &col_val);
+        
+        int z = 0;
+        if (*state->ip == ',') {
+            state->ip++;
+            GW_Value z_val;
+            gw_eval_expr(state, &z_val);
+            z = gw_val_get_int(&z_val);
+            if (z_val.type == TYPE_STRING) gw_str_free(&z_val.str);
+        }
+        if (*state->ip == ')') state->ip++;
+        
+        int row = gw_val_get_int(&row_val);
+        int col = gw_val_get_int(&col_val);
+        if (row_val.type == TYPE_STRING) gw_str_free(&row_val.str);
+        if (col_val.type == TYPE_STRING) gw_str_free(&col_val.str);
+        
+        result->type = TYPE_DOUBLE;
+        if (z) {
+            result->d_val = 7.0; 
+        } else {
+            char ch = gw_sdl2_get_char(col - 1, row - 1);
+            result->d_val = (double)(uint8_t)ch;
+        }
+        return;
+    }
+
     // Check COS function
     if (*state->ip == TOK_COS) {
         state->ip++;

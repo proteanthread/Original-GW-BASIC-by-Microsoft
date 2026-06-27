@@ -24,11 +24,13 @@
  *    - Run diagnostic verification script to identify isolated error line numbers.
  * -----------------------------------------------------------------------------
  */
+#define CONSOLE_C_INTERNAL
 #include "console.h"
 #include "gw_sdl2.h"
 #include "gwbasic.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -52,7 +54,9 @@ void gw_console_write_char(char c) {
 }
 
 char gw_console_read_char(void) {
-    // Check SDL key buffer first
+    // Poll SDL2 events to populate keyboard buffer
+    gw_sdl2_poll_events();
+    
     int code = gw_sdl2_get_key();
     if (code > 0) {
         return (char)code;
@@ -64,7 +68,10 @@ char gw_console_read_char(void) {
     }
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
     DWORD fileType = GetFileType(hStdin);
-    if (fileType == FILE_TYPE_PIPE || fileType == FILE_TYPE_CHAR || fileType == FILE_TYPE_UNKNOWN) {
+    if (fileType == FILE_TYPE_DISK) {
+        int ch = fgetc(stdin);
+        if (ch != EOF) return (char)ch;
+    } else if (fileType == FILE_TYPE_PIPE || fileType == FILE_TYPE_CHAR || fileType == FILE_TYPE_UNKNOWN) {
         DWORD bytesAvail = 0;
         if (PeekNamedPipe(hStdin, NULL, 0, NULL, &bytesAvail, NULL) && bytesAvail > 0) {
             char ch = 0;
@@ -98,13 +105,91 @@ char gw_console_read_char(void) {
     return 0;
 }
 
+int gw_printf(const char *format, ...) {
+    char buffer[2048];
+    va_list args;
+    va_start(args, format);
+    int result = vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    
+    int in_ansi = 0;
+    for (int i = 0; i < result && buffer[i] != '\0'; i++) {
+        char c = buffer[i];
+        if (in_ansi) {
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                in_ansi = 0;
+            }
+            continue;
+        }
+        if (c == '\033') {
+            in_ansi = 1;
+            continue;
+        }
+        gw_console_write_char(c);
+    }
+    return result;
+}
+
 void gw_console_read_line(char *buf, size_t max_len) {
+#ifdef NO_SDL2
     if (fgets(buf, max_len, stdin)) {
         size_t len = strlen(buf);
         while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
             buf[--len] = '\0';
         }
-    } else {
-        buf[0] = '\0';
     }
+    return;
+#else
+    size_t idx = 0;
+    buf[0] = '\0';
+    
+    uint32_t last_blink = 0;
+    int cursor_visible = 0;
+    
+    // Clear key buffer first
+    while (gw_sdl2_get_key() > 0) {}
+    
+    while (1) {
+        gw_sdl2_poll_events();
+        
+        uint32_t current_ticks = gw_sdl2_ticks();
+        if (current_ticks - last_blink >= 250) {
+            cursor_visible = !cursor_visible;
+            last_blink = current_ticks;
+            gw_sdl2_write_char_cursor(cursor_visible);
+        }
+        
+        int code = gw_sdl2_get_key();
+        if (code > 0) {
+            // Clear cursor before modifying text
+            if (cursor_visible) {
+                gw_sdl2_write_char_cursor(0);
+                cursor_visible = 0;
+            }
+            
+            if (code == 13 || code == '\n') { // Enter
+                buf[idx] = '\0';
+                gw_console_write_char('\n');
+                break;
+            } else if (code == 8 || code == 127) { // Backspace
+                if (idx > 0) {
+                    idx--;
+                    gw_console_write_char('\b');
+                }
+            } else if (code == 9) { // Tab
+                if (idx < max_len - 1) {
+                    buf[idx++] = '\t';
+                    gw_console_write_char('\t');
+                }
+            } else if (code >= 32 && code <= 126) { // Printable characters
+                if (idx < max_len - 1) {
+                    buf[idx++] = (char)code;
+                    gw_console_write_char((char)code);
+                }
+            }
+        }
+        
+        gw_sdl2_delay(10);
+    }
+#endif
 }

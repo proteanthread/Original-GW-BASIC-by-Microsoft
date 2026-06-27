@@ -36,6 +36,7 @@ extern uint32_t GW_PALETTE[16];
 int gw_sdl2_init(int width, int height, const char *title, int fullscreen);
 void gw_sdl2_cleanup(void);
 void gw_sdl2_present(void);
+void gw_sdl2_present_forced(void);
 void gw_sdl2_poll_events(void);
 void gw_sdl2_update_palette(int screen_mode, int machine_type, int bg_color, int palette_idx);
 
@@ -59,7 +60,11 @@ void gw_sdl2_write_char(char c);
 void gw_sdl2_clear_screen(uint32_t color);
 void gw_sdl2_set_cursor(int x, int y);
 char gw_sdl2_get_char(int x, int y);
+void gw_sdl2_poke_char(int x, int y, char c);
 void gw_sdl2_set_console(int start, int lines, int fn_keys, int mono);
+void gw_sdl2_delay(uint32_t ms);
+void gw_sdl2_write_char_cursor(int show);
+uint32_t gw_sdl2_ticks(void);
 
 // Sound API (PC Speaker Emulation)
 void gw_sdl2_beep(void);
@@ -69,5 +74,10 @@ void gw_sdl2_play_tone(float frequency, int duration_ms, int wait);
 void gw_sdl2_play_mml(const char *mml_string);
 int gw_sdl2_music_playing(void);
 void gw_sdl2_stop_music(void);
+
+// Environment Queries
+int gw_sdl2_get_columns(void);
+int gw_sdl2_get_mode(void);
+uint8_t gw_sdl2_get_shift_flags(void);
 
 #endif // GW_SDL2_H

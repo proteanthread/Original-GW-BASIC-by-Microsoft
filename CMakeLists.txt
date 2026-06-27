@@ -21,7 +21,7 @@ add_library(gw_plugin STATIC lib/gw_plugin.c)
 add_library(gw_serial STATIC lib/gw_serial.c)
 
 # Core Interpreter Executable
-add_executable(gwbasic
+add_executable(gwbasic WIN32
     src/main.c
     src/interp.c
     src/eval.c

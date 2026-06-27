@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgw_sdl2.a CMakeFiles/gw_sdl2.dir/lib/gw_sdl2.c.o
+/usr/bin/ranlib libgw_sdl2.a

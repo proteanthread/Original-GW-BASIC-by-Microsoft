@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgw_plugin.a CMakeFiles/gw_plugin.dir/lib/gw_plugin.c.o
+/usr/bin/ranlib libgw_plugin.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgw_math_mbf.a CMakeFiles/gw_math_mbf.dir/lib/gw_math_mbf.c.o
+/usr/bin/ranlib libgw_math_mbf.a

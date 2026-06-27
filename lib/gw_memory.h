@@ -41,6 +41,7 @@ void gw_mem_destroy(GW_Memory *mem);
 
 // Segment Management
 void gw_mem_def_seg(GW_Memory *mem, uint16_t segment);
+uint16_t gw_mem_get_seg(GW_Memory *mem);
 uint32_t gw_mem_resolve(GW_Memory *mem, uint16_t offset); // returns segment*16 + offset
 
 // Direct Operations

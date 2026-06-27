@@ -153,7 +153,9 @@ typedef struct {
     // Variables & Arrays
     GW_Var *variables;
     GW_Array *arrays;
-    GW_Type default_types[26]; // A-Z default type (from DEFINT/DEFSNG/DEFDBL/DEFSTR)
+    GW_Type default_types[26];
+    uint16_t usr_offsets[10];
+    uint16_t usr_segments[10];
 
     // String space allocator
     char *string_space;
@@ -212,5 +214,8 @@ extern GW_State *g_state;
 void gw_error(int error_code);
 void gw_eval_expr(GW_State *state, GW_Value *result);
 void gw_exec_statement(GW_State *state);
+
+#include <stdio.h>
+#include "console.h"
 
 #endif // GWBASIC_H

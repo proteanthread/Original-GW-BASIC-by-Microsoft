@@ -186,8 +186,13 @@ static void handle_print(GW_State *state) {
             }
             gw_str_free(&val.str);
         } else {
-            // Numeric format
-            printf(" %g ", gw_val_get_double(&val));
+            // Numeric format - format whole numbers without scientific notation
+            double d = gw_val_get_double(&val);
+            if (d == (double)(long long)d) {
+                printf(" %lld ", (long long)d);
+            } else {
+                printf(" %g ", d);
+            }
         }
         newline = true;
     }
@@ -392,13 +397,67 @@ static void handle_def_seg(GW_State *state) {
             gw_mem_def_seg(state->mem_sys, 0);
         }
     }
+    // Syntax: DEF USR[n] = offset
+    else if (*state->ip >= TOK_USR0 && *state->ip <= TOK_USR9) {
+        int usr_idx = *state->ip - TOK_USR0;
+        state->ip++;
+        while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+        if (*state->ip == '=') {
+            state->ip++;
+            GW_Value offset_val;
+            gw_eval_expr(state, &offset_val);
+            state->usr_offsets[usr_idx] = (uint16_t)gw_val_get_int(&offset_val);
+            state->usr_segments[usr_idx] = gw_mem_get_seg(state->mem_sys);
+        }
+    }
 }
 
 static void handle_screen(GW_State *state) {
-    GW_Value val;
-    gw_eval_expr(state, &val);
-    int mode = gw_val_get_int(&val);
-    state->screen_mode = mode;
+    while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+    int mode = 0;
+    if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+        GW_Value val;
+        gw_eval_expr(state, &val);
+        mode = gw_val_get_int(&val);
+        state->screen_mode = mode;
+        if (val.type == TYPE_STRING) gw_str_free(&val.str);
+    }
+    
+    // Parse active_page
+    while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+    if (*state->ip == ',') {
+        state->ip++;
+        while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+        if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+            GW_Value val2;
+            gw_eval_expr(state, &val2);
+            if (val2.type == TYPE_STRING) gw_str_free(&val2.str);
+        }
+    }
+    
+    // Parse visual_page
+    while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+    if (*state->ip == ',') {
+        state->ip++;
+        while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+        if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+            GW_Value val3;
+            gw_eval_expr(state, &val3);
+            if (val3.type == TYPE_STRING) gw_str_free(&val3.str);
+        }
+    }
+    
+    // Parse erase
+    while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+    if (*state->ip == ',') {
+        state->ip++;
+        while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+        if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+            GW_Value val4;
+            gw_eval_expr(state, &val4);
+            if (val4.type == TYPE_STRING) gw_str_free(&val4.str);
+        }
+    }
     
     int cols = 80;
     if (mode == 0) {
@@ -428,10 +487,8 @@ static void handle_screen(GW_State *state) {
     if (mode > 0) {
         gw_sdl2_init(640, 400, "GW-BASIC C17", 0);
         gw_sdl2_set_mode(mode, cols);
-        printf("[SCREEN: Graphics Mode %d]\n", mode);
     } else {
-        gw_sdl2_cleanup();
-        printf("[SCREEN: Text mode %dx25]\n", cols);
+        gw_sdl2_set_mode(0, cols);
     }
 }
 
@@ -504,6 +561,20 @@ static void handle_width(GW_State *state) {
     GW_Value val;
     gw_eval_expr(state, &val);
     int cols = gw_val_get_int(&val);
+    if (val.type == TYPE_STRING) gw_str_free(&val.str);
+    
+    // Parse optional second argument (rows)
+    while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+    if (*state->ip == ',') {
+        state->ip++;
+        while (*state->ip == ' ' || *state->ip == '\t') state->ip++;
+        if (*state->ip && *state->ip != ',' && *state->ip != ':' && *state->ip != '\n' && *state->ip != TOK_ELSE) {
+            GW_Value val2;
+            gw_eval_expr(state, &val2);
+            if (val2.type == TYPE_STRING) gw_str_free(&val2.str);
+        }
+    }
+    
     if (cols == 40 || cols == 80) {
         gw_sdl2_set_mode(state->screen_mode, cols);
         printf("\033[2J\033[H"); // ANSI clear screen

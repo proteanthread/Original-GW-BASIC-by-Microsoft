@@ -1,0 +1,8 @@
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gw_math_mbf.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gw_sdl2.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gw_memory.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gw_plugin.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gw_serial.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/gwbasic.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/edit_cache.dir
+/mnt/c/Users/rtdos/GitHub/Original-GW-BASIC-by-Microsoft/build-linux/CMakeFiles/rebuild_cache.dir

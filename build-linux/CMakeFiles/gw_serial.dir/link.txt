@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgw_serial.a CMakeFiles/gw_serial.dir/lib/gw_serial.c.o
+/usr/bin/ranlib libgw_serial.a

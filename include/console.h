@@ -27,7 +27,8 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include "gwbasic.h"
+#include <stddef.h>
+#include <stdarg.h>
 
 // Output character
 void gw_console_write_char(char c);
@@ -37,5 +38,11 @@ char gw_console_read_char(void);
 
 // Line editor
 void gw_console_read_line(char *buf, size_t max_len);
+
+int gw_printf(const char *format, ...);
+
+#ifndef CONSOLE_C_INTERNAL
+#define printf gw_printf
+#endif
 
 #endif // CONSOLE_H

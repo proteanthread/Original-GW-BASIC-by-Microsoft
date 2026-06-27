@@ -133,7 +133,18 @@ typedef enum {
     TOK_CINT,
     TOK_CSNG,
     TOK_CDBL,
-    TOK_FIX
+    TOK_FIX,
+    TOK_FRE,
+    TOK_USR0,
+    TOK_USR1,
+    TOK_USR2,
+    TOK_USR3,
+    TOK_USR4,
+    TOK_USR5,
+    TOK_USR6,
+    TOK_USR7,
+    TOK_USR8,
+    TOK_USR9
 } GW_Token;
 
 // Crunch a text line into tokenized bytes

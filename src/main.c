@@ -110,12 +110,15 @@ static void init_interpreter_state(void) {
         g_state->default_types[i] = TYPE_SINGLE;
     }
     
-    g_state->string_space_size = 32768;
+    g_state->string_space_size = 1048576;
     g_state->string_space = (char *)malloc(g_state->string_space_size);
     g_state->string_space_free = g_state->string_space_size;
     
-    g_state->mem_sys = gw_mem_create(65536);
+    g_state->mem_sys = gw_mem_create(1048576);
     g_state->plugin_mgr = gw_plugin_init();
+    
+    g_state->fg_color = 7;
+    g_state->bg_color = 0;
 }
 
 
@@ -123,7 +126,6 @@ static void init_interpreter_state(void) {
 int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
-    printf("GW-BASIC Modernized 64-bit Interpreter (C17)\n");
     
     init_interpreter_state();
     
@@ -151,6 +153,9 @@ int main(int argc, char **argv) {
     }
     g_state->machine = machine;
     gw_sdl2_set_machine((int)machine);
+    gw_sdl2_init(640, 400, "GW-BASIC C17", 0);
+    gw_sdl2_set_mode(0, 80);
+    printf("GW-BASIC Modernized 64-bit Interpreter (C17)\n");
     
     if (load_file) {
         strncpy(g_state->current_program_path, load_file, sizeof(g_state->current_program_path) - 1);
@@ -217,9 +222,7 @@ int main(int argc, char **argv) {
         
         printf("\nReady\n");
         printf("] ");
-        if (!fgets(line_buf, sizeof(line_buf), stdin)) {
-            break;
-        }
+        gw_console_read_line(line_buf, sizeof(line_buf));
         
         // Strip newline and carriage return
         size_t len = strlen(line_buf);
@@ -301,3 +304,10 @@ int main(int argc, char **argv) {
     printf("Goodbye!\n");
     return 0;
 }
+
+#if defined(_WIN32) && !defined(NO_SDL2)
+#include <windows.h>
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    return main(__argc, __argv);
+}
+#endif

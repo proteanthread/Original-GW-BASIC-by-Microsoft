@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgw_memory.a CMakeFiles/gw_memory.dir/lib/gw_memory.c.o
+/usr/bin/ranlib libgw_memory.a
